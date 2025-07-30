@@ -7,7 +7,7 @@ import { Settings, Target, Calendar, TrendingUp } from "lucide-react";
 import { formatNaira, calculateProgress } from "@/lib/currency";
 
 interface ProjectCardProps {
-  project: ProjectWithStats;
+  project: Project | ProjectWithStats;
   isAdmin?: boolean;
   onManage?: (project: Project) => void;
   onContribute?: (project: Project) => void;
@@ -20,6 +20,7 @@ export function ProjectCard({
   onContribute
 }: ProjectCardProps) {
   const progress = calculateProgress(project.collectedAmount, project.targetAmount);
+  const contributionCount = 'contributionCount' in project ? project.contributionCount : 0;
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -84,10 +85,12 @@ export function ProjectCard({
           </div>
         )}
 
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-          <span>{project.contributionCount} contributions</span>
-          <span>Completion: {project.completionRate}%</span>
-        </div>
+        {('contributionCount' in project || 'completionRate' in project) && (
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+            {'contributionCount' in project && <span>{(project as any).contributionCount} contributions</span>}
+            {'completionRate' in project && <span>Completion: {(project as any).completionRate}%</span>}
+          </div>
+        )}
 
         <div className="flex space-x-2">
           {isAdmin ? (

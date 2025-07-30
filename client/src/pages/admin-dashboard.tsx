@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { formatNaira } from "@/lib/currency";
-import { Group } from "@shared/schema";
+import { Group, Project } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
@@ -35,18 +35,19 @@ export default function AdminDashboard() {
   const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
   const [managePartnersModalOpen, setManagePartnersModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
 
-  const { data: groups = [], isLoading: groupsLoading } = useQuery({
+  const { data: groups = [], isLoading: groupsLoading } = useQuery<Group[]>({
     queryKey: ["/api/groups", "admin", user?.id],
     enabled: !!user,
   });
 
-  const { data: adminStats, isLoading: statsLoading } = useQuery({
+  const { data: adminStats = {}, isLoading: statsLoading } = useQuery<any>({
     queryKey: ["/api/stats", "admin", user?.id],
     enabled: !!user,
   });
 
-  const { data: recentContributions = [], isLoading: contributionsLoading } = useQuery({
+  const { data: recentContributions = [], isLoading: contributionsLoading } = useQuery<any[]>({
     queryKey: ["/api/contributions", "admin", user?.id],
     enabled: !!user,
   });
@@ -91,6 +92,98 @@ export default function AdminDashboard() {
     setSelectedGroup(group);
     setManagePartnersModalOpen(true);
   };
+
+  const toggleGroupExpansion = (groupId: string) => {
+    setExpandedGroupId(expandedGroupId === groupId ? null : groupId);
+  };
+
+  // Hook to fetch projects for a specific group
+  const useGroupProjects = (groupId: string) => {
+    return useQuery<Project[]>({
+      queryKey: ["/api/groups", groupId, "projects"],
+      enabled: !!groupId,
+    });
+  };
+
+  // Component to display group with its projects
+  function GroupWithProjects({ group }: { group: Group }) {
+    const { data: projects = [], isLoading: projectsLoading } = useGroupProjects(group.id);
+    const isExpanded = expandedGroupId === group.id;
+
+    return (
+      <div className="space-y-3">
+        <GroupCard
+          group={group}
+          isAdmin={true}
+          onManage={handleManageGroup}
+          onShare={handleShareGroup}
+        />
+        
+        {/* Quick Actions for Group */}
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => handleCreateProject(group)}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            <FolderPlus className="h-4 w-4 mr-1" />
+            Add Project
+          </Button>
+          <Button
+            onClick={() => toggleGroupExpansion(group.id)}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            <Settings className="h-4 w-4 mr-1" />
+            {isExpanded ? 'Hide' : 'View'} Projects ({projects.length})
+          </Button>
+          <Button
+            onClick={() => handleManagePartners(group)}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            <UserCheck className="h-4 w-4 mr-1" />
+            Partners
+          </Button>
+        </div>
+
+        {/* Projects List */}
+        {isExpanded && (
+          <div className="ml-4 pl-4 border-l-2 border-gray-200 space-y-3">
+            {projectsLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nigerian-green mx-auto"></div>
+                <p className="text-sm text-gray-600 mt-2">Loading projects...</p>
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="text-center py-6 bg-gray-50 rounded-lg">
+                <FolderPlus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600 mb-3">No projects yet in this group</p>
+                <Button
+                  onClick={() => handleCreateProject(group)}
+                  size="sm"
+                  className="bg-nigerian-green hover:bg-forest-green"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Create First Project
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Active Projects ({projects.length})</h4>
+                {projects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (groupsLoading || statsLoading) {
     return (
@@ -234,36 +327,7 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {groups.map((group) => (
-                      <div key={group.id} className="space-y-3">
-                        <GroupCard
-                          group={group}
-                          isAdmin={true}
-                          onManage={handleManageGroup}
-                          onShare={handleShareGroup}
-                        />
-                        
-                        {/* Quick Actions for Group */}
-                        <div className="flex space-x-2">
-                          <Button
-                            onClick={() => handleCreateProject(group)}
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <FolderPlus className="h-4 w-4 mr-1" />
-                            Add Project
-                          </Button>
-                          <Button
-                            onClick={() => handleManagePartners(group)}
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <UserCheck className="h-4 w-4 mr-1" />
-                            Partners
-                          </Button>
-                        </div>
-                      </div>
+                      <GroupWithProjects key={group.id} group={group} />
                     ))}
                   </div>
                 )}

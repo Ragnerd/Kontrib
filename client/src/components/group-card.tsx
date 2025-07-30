@@ -7,7 +7,7 @@ import { MessageCircle, Settings, Users } from "lucide-react";
 import { formatNaira, calculateProgress } from "@/lib/currency";
 
 interface GroupCardProps {
-  group: GroupWithStats;
+  group: Group | GroupWithStats;
   isAdmin?: boolean;
   onManage?: (group: Group) => void;
   onShare?: (group: Group) => void;
@@ -23,8 +23,6 @@ export function GroupCard({
   onMakePayment,
   userContribution 
 }: GroupCardProps) {
-  const progress = calculateProgress(group.collectedAmount, group.targetAmount);
-  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
@@ -37,6 +35,9 @@ export function GroupCard({
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  // Check if this is a GroupWithStats object
+  const hasStats = 'memberCount' in group;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -55,39 +56,43 @@ export function GroupCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-4">
-          <div>
-            <p className="text-gray-600">
-              {isAdmin ? "Members" : userContribution ? "My Contribution" : "Members"}
-            </p>
-            <p className="font-semibold">
-              {isAdmin ? group.memberCount : userContribution ? formatNaira(userContribution) : group.memberCount}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600">Target</p>
-            <p className="font-semibold">{formatNaira(group.targetAmount)}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">Collected</p>
-            <p className="font-semibold text-green-600">{formatNaira(group.collectedAmount)}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">Progress</p>
-            <div className="flex items-center space-x-2">
-              <Progress value={progress} className="flex-1 h-2" />
-              <span className="text-xs font-medium">{progress}%</span>
+        {hasStats && (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-4">
+              <div>
+                <p className="text-gray-600">
+                  {isAdmin ? "Members" : userContribution ? "My Contribution" : "Members"}
+                </p>
+                <p className="font-semibold">
+                  {isAdmin ? (group as any).memberCount : userContribution ? formatNaira(userContribution) : (group as any).memberCount}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-600">Target</p>
+                <p className="font-semibold">{formatNaira((group as any).targetAmount)}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Collected</p>
+                <p className="font-semibold text-green-600">{formatNaira((group as any).collectedAmount)}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Progress</p>
+                <div className="flex items-center space-x-2">
+                  <Progress value={calculateProgress((group as any).collectedAmount, (group as any).targetAmount)} className="flex-1 h-2" />
+                  <span className="text-xs font-medium">{calculateProgress((group as any).collectedAmount, (group as any).targetAmount)}%</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {isAdmin && group.pendingPayments > 0 && (
-          <div className="mb-4 p-3 bg-orange-50 rounded-lg">
-            <p className="text-sm text-orange-800">
-              <Users className="inline h-4 w-4 mr-1" />
-              {group.pendingPayments} pending payments
-            </p>
-          </div>
+            {isAdmin && (group as any).pendingPayments > 0 && (
+              <div className="mb-4 p-3 bg-orange-50 rounded-lg">
+                <p className="text-sm text-orange-800">
+                  <Users className="inline h-4 w-4 mr-1" />
+                  {(group as any).pendingPayments} pending payments
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {isAdmin && group.customSlug && (
