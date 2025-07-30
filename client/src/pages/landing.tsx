@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Shield, Smartphone, TrendingUp } from "lucide-react";
 import { insertUserSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -48,6 +49,7 @@ export default function Landing() {
       confirmPassword: "",
       fullName: "",
       phoneNumber: "",
+      role: "member",
     },
   });
 
@@ -268,6 +270,31 @@ export default function Landing() {
                               <FormControl>
                                 <Input placeholder="+234..." {...field} />
                               </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={registerForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Account Type</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select your role" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="member">Group Member - Join groups and make contributions</SelectItem>
+                                  <SelectItem value="admin">Group Admin - Create and manage contribution groups</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-gray-600 mt-1">
+                                Choose "Group Admin" if you want to create and manage groups. Choose "Group Member" if you want to join groups and make contributions.
+                              </p>
                               <FormMessage />
                             </FormItem>
                           )}

@@ -49,7 +49,6 @@ export const contributions = pgTable("contributions", {
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
-  role: true,
 });
 
 export const insertGroupSchema = createInsertSchema(groups).omit({
