@@ -1,0 +1,225 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Navigation } from "@/components/navigation";
+import { GroupCard } from "@/components/group-card";
+import { PaymentModal } from "@/components/payment-modal";
+import { 
+  DollarSign, 
+  Users, 
+  CheckCircle, 
+  ArrowDown,
+  Download
+} from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
+import { formatNaira } from "@/lib/currency";
+import { Group } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+
+export default function MemberDashboard() {
+  const user = getCurrentUser();
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+
+  const { data: userGroups = [], isLoading: groupsLoading } = useQuery({
+    queryKey: ["/api/groups", "user", user?.id],
+    enabled: !!user,
+  });
+
+  const { data: userStats, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/stats", "user", user?.id],
+    enabled: !!user,
+  });
+
+  const { data: paymentHistory = [], isLoading: historyLoading } = useQuery({
+    queryKey: ["/api/contributions", "user", user?.id],
+    enabled: !!user,
+  });
+
+  const handleMakePayment = (group: Group) => {
+    setSelectedGroup(group);
+    setPaymentModalOpen(true);
+  };
+
+  if (groupsLoading || statsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="animate-pulse space-y-6">
+            <div className="h-32 bg-gray-200 rounded-xl"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-20 sm:pb-0">
+      <Navigation />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Dashboard Header */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Member Dashboard</h2>
+                <p className="text-blue-100">Welcome, {user?.fullName}</p>
+                <p className="text-blue-200 text-sm">
+                  Member of {userGroups.length} active groups
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Member Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Contributions</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {userStats ? formatNaira(userStats.totalContributions) : "₦0"}
+                  </p>
+                  <p className="text-xs text-green-600">All groups combined</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
+                  <DollarSign className="text-blue-500 h-6 w-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Groups</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {userStats?.groupCount || 0}
+                  </p>
+                  <p className="text-xs text-blue-600">Contributing regularly</p>
+                </div>
+                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                  <Users className="text-green-500 h-6 w-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Payment Status</p>
+                  <p className="text-2xl font-bold text-green-600">Up to Date</p>
+                  <p className="text-xs text-green-600">No pending payments</p>
+                </div>
+                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                  <CheckCircle className="text-green-500 h-6 w-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* My Groups */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>My Groups</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {userGroups.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No groups yet</h3>
+                <p className="text-gray-600 mb-4">
+                  You're not a member of any contribution groups yet. Ask an admin for an invitation link.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {userGroups.map((membership) => (
+                  <GroupCard
+                    key={membership.group.id}
+                    group={membership.group}
+                    isAdmin={false}
+                    onMakePayment={handleMakePayment}
+                    userContribution={membership.contributedAmount}
+                  />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment History */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Payment History</CardTitle>
+              {paymentHistory.length > 0 && (
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {paymentHistory.length === 0 ? (
+              <div className="text-center py-8">
+                <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No payments yet</h3>
+                <p className="text-gray-600">Your payment history will appear here once you make contributions.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {paymentHistory.map((payment) => (
+                  <div key={payment.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <ArrowDown className="text-green-600 h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{payment.groupName}</p>
+                        <p className="text-sm text-gray-600">
+                          {payment.description || "Contribution"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(payment.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{formatNaira(payment.amount)}</p>
+                      <Badge className="bg-green-100 text-green-800">
+                        {payment.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        open={paymentModalOpen}
+        onOpenChange={setPaymentModalOpen}
+        group={selectedGroup}
+      />
+    </div>
+  );
+}

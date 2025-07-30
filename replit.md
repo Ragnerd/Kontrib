@@ -1,0 +1,112 @@
+# GroupContrib - Financial Group Management System
+
+## Overview
+
+GroupContrib is a full-stack web application designed for managing group financial contributions in Nigeria. It provides a platform where administrators can create contribution groups and members can join groups and make payments. The application features a modern React frontend with a Node.js/Express backend, using PostgreSQL for data persistence.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+The client-side is built using **React 18** with **TypeScript** and follows a modern component-based architecture:
+
+- **Build Tool**: Vite for fast development and optimized production builds
+- **UI Framework**: Shadcn/UI components built on top of Radix UI primitives
+- **Styling**: Tailwind CSS with custom Nigerian-themed color palette (green primary colors)
+- **State Management**: React Query (TanStack Query) for server state management
+- **Routing**: Wouter for lightweight client-side routing
+- **Forms**: React Hook Form with Zod validation
+- **Authentication**: Client-side authentication state management with localStorage persistence
+
+### Backend Architecture
+The server-side uses **Node.js** with **Express** in a RESTful API pattern:
+
+- **Runtime**: Node.js with ESM modules
+- **Framework**: Express.js for HTTP server and routing
+- **Database ORM**: Drizzle ORM for type-safe database operations
+- **Validation**: Zod schemas shared between client and server
+- **Development**: Hot reload with Vite integration in development mode
+
+### Database Design
+Uses **PostgreSQL** with a well-structured relational schema:
+
+- **Users**: Authentication and profile information with role-based access (admin/member)
+- **Groups**: Financial contribution groups with target amounts and deadlines
+- **Group Members**: Junction table linking users to groups with contribution tracking
+- **Contributions**: Individual payment records with status tracking
+
+## Key Components
+
+### Authentication System
+- Role-based access control (Admin vs Member roles)
+- Simple username/password authentication
+- Client-side session persistence using localStorage
+- Protected routes based on user roles
+
+### Group Management
+- Admins can create groups with target amounts and deadlines
+- Unique registration links for group joining
+- Group status tracking (active, completed, paused)
+- WhatsApp integration for group communication
+
+### Payment Processing
+- Contribution tracking with amount and status
+- Transaction reference support
+- Payment history and analytics
+- Progress tracking toward group goals
+
+### Dashboard System
+- **Admin Dashboard**: Group management, member oversight, financial analytics
+- **Member Dashboard**: Joined groups, payment history, contribution tracking
+- Real-time statistics and progress indicators
+
+## Data Flow
+
+1. **Authentication Flow**: Users register/login → credentials validated → user object stored in localStorage → role-based dashboard redirect
+
+2. **Group Creation Flow**: Admin creates group → generates unique registration link → group stored with admin relationship → shareable link provided
+
+3. **Group Joining Flow**: Member accesses registration link → group details displayed → member joins → group member relationship created
+
+4. **Payment Flow**: Member initiates payment → contribution record created → group totals updated → admin and member dashboards reflect changes
+
+## External Dependencies
+
+### Core Dependencies
+- **@neondatabase/serverless**: Neon Database PostgreSQL driver for serverless environments
+- **drizzle-orm**: Type-safe ORM for database operations
+- **@tanstack/react-query**: Server state management and caching
+- **@radix-ui/***: Accessible UI component primitives
+- **wouter**: Lightweight React router
+
+### Development Tools
+- **TypeScript**: Static type checking across the entire stack
+- **Vite**: Fast build tool and development server
+- **Tailwind CSS**: Utility-first CSS framework
+- **ESBuild**: Fast JavaScript bundler for production builds
+
+### Database
+- **PostgreSQL**: Primary database (configured for Neon Database)
+- **Drizzle Kit**: Database migrations and schema management
+
+## Deployment Strategy
+
+### Build Process
+- Frontend builds to `dist/public` directory using Vite
+- Backend bundles to `dist/index.js` using ESBuild
+- TypeScript compilation and type checking before build
+
+### Environment Configuration
+- Development: Vite dev server with Express API proxy
+- Production: Express serves built static files and API routes
+- Database: PostgreSQL connection via DATABASE_URL environment variable
+
+### Replit Integration
+- Configured for Replit development environment
+- Runtime error overlay for debugging
+- Cartographer integration for enhanced development experience
+
+The application is designed to be easily deployable on platforms like Replit, Vercel, or any Node.js hosting service with PostgreSQL database support. The modular architecture allows for easy scaling and maintenance of both frontend and backend components.
