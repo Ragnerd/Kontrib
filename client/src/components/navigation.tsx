@@ -27,7 +27,7 @@ export function Navigation() {
                 <Users className="text-white h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-nigerian-green">GroupContrib</h1>
+                <h1 className="text-xl font-bold text-nigerian-green">Kontrib</h1>
                 <p className="text-xs text-gray-600">Financial Management</p>
               </div>
             </div>

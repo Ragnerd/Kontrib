@@ -115,7 +115,7 @@ export default function Landing() {
             <Users className="text-white h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-nigerian-green">GroupContrib</h1>
+            <h1 className="text-2xl font-bold text-nigerian-green">Kontrib</h1>
             <p className="text-gray-600">WhatsApp Group Financial Management</p>
           </div>
         </div>

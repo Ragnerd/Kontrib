@@ -1,8 +1,8 @@
-# GroupContrib - Financial Group Management System
+# Kontrib - Financial Group Management System
 
 ## Overview
 
-GroupContrib is a full-stack web application designed for managing group financial contributions in Nigeria. It provides a platform where administrators can create contribution groups and members can join groups and make payments. The application features a modern React frontend with a Node.js/Express backend, using PostgreSQL for data persistence.
+Kontrib is a full-stack web application designed for managing group financial contributions in Nigeria. It provides a platform where administrators can create contribution groups and members can join groups and make payments. The application features a modern React frontend with a Node.js/Express backend, using PostgreSQL for data persistence.
 
 ## User Preferences
 
