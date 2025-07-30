@@ -165,6 +165,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/contributions/:id/confirm", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const contribution = await storage.confirmContribution(id);
+      if (!contribution) {
+        return res.status(404).json({ message: "Contribution not found" });
+      }
+      res.json(contribution);
+    } catch (error) {
+      console.error("Confirm contribution error:", error);
+      res.status(500).json({ message: "Failed to confirm contribution" });
+    }
+  });
+
   // Stats routes
   app.get("/api/stats/user/:userId", async (req, res) => {
     try {

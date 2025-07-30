@@ -36,6 +36,7 @@ export interface IStorage {
   getGroupContributions(groupId: string): Promise<ContributionWithDetails[]>;
   getUserContributions(userId: string): Promise<ContributionWithDetails[]>;
   createContribution(contribution: InsertContribution): Promise<Contribution>;
+  confirmContribution(contributionId: string): Promise<Contribution | undefined>;
   updateContribution(id: string, updates: Partial<Contribution>): Promise<Contribution | undefined>;
   
   // Stats methods
@@ -117,6 +118,16 @@ export class MemStorage implements IStorage {
   async createGroup(insertGroup: InsertGroup, adminId: string): Promise<Group> {
     const id = randomUUID();
     const registrationLink = randomUUID();
+    
+    // Auto-generate WhatsApp sharing link if not provided
+    let whatsappLink = insertGroup.whatsappLink;
+    if (!whatsappLink) {
+      const baseUrl = process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 'http://localhost:5000';
+      const joinUrl = `${baseUrl}/register/${registrationLink}`;
+      const message = `Join our group "${insertGroup.name}" for financial contributions! Click here to register: ${joinUrl}`;
+      whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    }
+    
     const group: Group = {
       ...insertGroup,
       id,
@@ -125,8 +136,9 @@ export class MemStorage implements IStorage {
       collectedAmount: "0",
       createdAt: new Date(),
       description: insertGroup.description || null,
-      whatsappLink: insertGroup.whatsappLink || null,
+      whatsappLink,
       deadline: insertGroup.deadline || null,
+      status: insertGroup.status || "active",
     };
     this.groups.set(id, group);
     return group;
@@ -212,13 +224,25 @@ export class MemStorage implements IStorage {
     const contribution: Contribution = {
       ...insertContribution,
       id,
-      status: "confirmed",
+      status: "pending", // All contributions start as pending until admin confirms
       createdAt: new Date(),
       description: insertContribution.description || null,
       transactionRef: insertContribution.transactionRef || null,
+      proofOfPayment: insertContribution.proofOfPayment || null,
     };
     this.contributions.set(id, contribution);
 
+    // Don't update amounts yet - wait for admin confirmation
+    return contribution;
+  }
+
+  async confirmContribution(contributionId: string): Promise<Contribution | undefined> {
+    const contribution = this.contributions.get(contributionId);
+    if (!contribution) return undefined;
+
+    // Update status to confirmed
+    contribution.status = "confirmed";
+    
     // Update group collected amount
     const group = this.groups.get(contribution.groupId);
     if (group) {

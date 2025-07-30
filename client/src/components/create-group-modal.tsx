@@ -35,7 +35,6 @@ export function CreateGroupModal({ open, onOpenChange }: CreateGroupModalProps) 
       name: "",
       description: "",
       targetAmount: "",
-      whatsappLink: "",
       deadline: undefined,
     },
   });
@@ -48,11 +47,11 @@ export function CreateGroupModal({ open, onOpenChange }: CreateGroupModalProps) 
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups", "admin", user?.id] });
       toast({
-        title: "Success",
-        description: "Group created successfully!",
+        title: "Group Created!",
+        description: "Your group has been created with automatic WhatsApp sharing link.",
       });
       form.reset();
       onOpenChange(false);
@@ -111,24 +110,11 @@ export function CreateGroupModal({ open, onOpenChange }: CreateGroupModalProps) 
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="whatsappLink"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>WhatsApp Group Link (Optional)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="url" 
-                      placeholder="https://chat.whatsapp.com/..." 
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-700">
+                📱 <strong>WhatsApp Integration:</strong> A shareable WhatsApp message with the group registration link will be automatically generated after creating the group.
+              </p>
+            </div>
 
             <FormField
               control={form.control}

@@ -41,8 +41,9 @@ export const contributions = pgTable("contributions", {
   userId: varchar("user_id").notNull().references(() => users.id),
   amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
   description: text("description"),
-  status: text("status").notNull().default("confirmed"), // "confirmed", "pending", "failed"
+  status: text("status").notNull().default("pending"), // "confirmed", "pending", "failed"
   transactionRef: text("transaction_ref"),
+  proofOfPayment: text("proof_of_payment"), // Base64 encoded image or file path
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

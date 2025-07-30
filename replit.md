@@ -47,16 +47,17 @@ Uses **PostgreSQL** with a well-structured relational schema:
 - Protected routes based on user roles
 
 ### Group Management
-- Admins can create groups with target amounts and deadlines
-- Unique registration links for group joining
-- Group status tracking (active, completed, paused)
-- WhatsApp integration for group communication
+- **Auto-Generated WhatsApp Links**: System automatically creates shareable WhatsApp messages with registration links
+- **Unique Registration Links**: Each group gets a unique link for member self-registration  
+- **Group Status Tracking**: Active, completed, and paused group states
+- **Target Amount and Deadline Management**: Flexible contribution goals and timing
 
 ### Payment Processing
-- Contribution tracking with amount and status
-- Transaction reference support
-- Payment history and analytics
-- Progress tracking toward group goals
+- **Proof of Payment Upload**: Members can upload payment receipts/screenshots for verification
+- **Admin Approval System**: All contributions start as "pending" until admin confirms them
+- **Transaction Reference Support**: Optional bank transfer references
+- **Payment History and Analytics**: Complete tracking of all contributions
+- **Progress Tracking**: Real-time progress toward group goals (only counts confirmed payments)
 
 ### Dashboard System
 - **Admin Dashboard**: Group management, member oversight, financial analytics
