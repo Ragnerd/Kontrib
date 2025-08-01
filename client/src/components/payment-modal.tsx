@@ -77,6 +77,8 @@ export function PaymentModal({ open, onOpenChange, project }: PaymentModalProps)
     mutationFn: async (data: PaymentFormData) => {
       if (!project || !user) throw new Error("Missing project or user");
       
+      console.log("Submitting payment data:", { ...data, projectId: project.id, groupId: project.groupId, userId: user.id });
+      
       const response = await apiRequest("POST", "/api/contributions", {
         ...data,
         amount: data.amount,
@@ -96,18 +98,24 @@ export function PaymentModal({ open, onOpenChange, project }: PaymentModalProps)
         description: "Your contribution has been submitted and is pending admin approval.",
       });
       form.reset();
+      removeProof();
       onOpenChange(false);
     },
     onError: (error) => {
+      console.error("Payment submission error:", error);
       toast({
         title: "Payment Failed",
-        description: "Failed to process payment. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to process payment. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: PaymentFormData) => {
+    console.log("Form submission data:", data);
+    console.log("Form errors:", form.formState.errors);
+    console.log("Project data:", project);
+    console.log("User data:", user);
     createPaymentMutation.mutate(data);
   };
 
