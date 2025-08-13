@@ -21,7 +21,14 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-const registerSchema = insertUserSchema.extend({
+// Admin registration schema - only for admin accounts
+const registerSchema = insertUserSchema.pick({
+  username: true,
+  fullName: true,
+  phoneNumber: true,
+  role: true,
+}).extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -35,6 +42,7 @@ export default function Landing() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [selectedRole, setSelectedRole] = useState<"member" | "admin">("member");
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -78,16 +86,30 @@ export default function Landing() {
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormData) => {
       const { confirmPassword, ...userData } = data;
+      
+      // For member accounts, use OTP-based registration
+      if (userData.role === "member") {
+        // Generate a random password for members (they'll use OTP)
+        userData.password = "otp-auth";
+      }
+      
       const response = await apiRequest("POST", "/api/auth/register", userData);
       return response.json();
     },
     onSuccess: (data) => {
       setCurrentUser(data.user);
-      toast({
-        title: "Account Created!",
-        description: "Your account has been created successfully.",
-      });
-      setLocation("/member");
+      if (data.user.role === "member") {
+        toast({
+          title: "Account Created!",
+          description: "Your member account has been created. You can now join groups through invitation links.",
+        });
+      } else {
+        toast({
+          title: "Admin Account Created!",
+          description: "Your admin account has been created successfully.",
+        });
+      }
+      setLocation(data.user.role === "admin" ? "/admin" : "/member");
     },
     onError: () => {
       toast({
@@ -281,59 +303,70 @@ export default function Landing() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Account Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={(value) => {
+                                field.onChange(value);
+                                setSelectedRole(value as "member" | "admin");
+                              }} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select your role" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="member">Group Member - Join groups and make contributions</SelectItem>
+                                  <SelectItem value="member">Group Member - Join groups via invitation links</SelectItem>
                                   <SelectItem value="admin">Group Admin - Create and manage contribution groups</SelectItem>
                                 </SelectContent>
                               </Select>
                               <p className="text-xs text-gray-600 mt-1">
-                                Choose "Group Admin" if you want to create and manage groups. Choose "Group Member" if you want to join groups and make contributions.
+                                {selectedRole === "member" 
+                                  ? "Members join groups through invitation links and use OTP verification. No password needed!"
+                                  : "Admins create groups and need a password for account security."
+                                }
                               </p>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
 
-                        <FormField
-                          control={registerForm.control}
-                          name="password"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Password</FormLabel>
-                              <FormControl>
-                                <Input type="password" placeholder="Create a password" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {selectedRole === "admin" && (
+                          <>
+                            <FormField
+                              control={registerForm.control}
+                              name="password"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Password</FormLabel>
+                                  <FormControl>
+                                    <Input type="password" placeholder="Create a password" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                        <FormField
-                          control={registerForm.control}
-                          name="confirmPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Confirm Password</FormLabel>
-                              <FormControl>
-                                <Input type="password" placeholder="Confirm your password" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                            <FormField
+                              control={registerForm.control}
+                              name="confirmPassword"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Confirm Password</FormLabel>
+                                  <FormControl>
+                                    <Input type="password" placeholder="Confirm your password" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </>
+                        )}
 
                         <Button 
                           type="submit" 
                           className="w-full bg-nigerian-green hover:bg-forest-green"
                           disabled={registerMutation.isPending}
                         >
-                          {registerMutation.isPending ? "Creating Account..." : "Create Account"}
+                          {registerMutation.isPending ? "Creating Account..." : 
+                           selectedRole === "member" ? "Create Member Account" : "Create Admin Account"}
                         </Button>
                       </form>
                     </Form>

@@ -118,7 +118,9 @@ The application is designed to be easily deployable on platforms like Replit, Ve
 ### WhatsApp Integration & OTP Authentication Implementation (August 13, 2025)
 - **Comprehensive WhatsApp Integration Page**: Created interactive WhatsApp sharing view with live message previews
 - **OTP-Based Group Registration**: Implemented secure phone number verification for new member registration
-- **Multi-Step Registration Workflow**: New members provide username + WhatsApp number → receive OTP → verify → join group
+- **Multi-Step Registration Workflow**: Members provide Full Name + Username (WhatsApp Group Nickname) + WhatsApp Phone Number → receive OTP → verify → join group
+- **Dual Authentication System**: Members use OTP-only authentication, Admins use traditional password-based login
+- **Dynamic Registration Form**: Password fields only appear for admin accounts, hidden for member accounts
 - **Enhanced Security**: OTP verification with 10-minute expiration, 3-attempt limit, and automatic cleanup
 - **Mobile-First Design**: Responsive registration forms optimized for mobile WhatsApp users
 - **Development Testing**: OTP displayed in console/toast for development testing (removed in production)
