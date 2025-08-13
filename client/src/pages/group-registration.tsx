@@ -19,9 +19,8 @@ import { z } from "zod";
 
 // Form validation schemas
 const registrationFormSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters").max(20, "Username must be less than 20 characters"),
   fullName: z.string().min(2, "Full name is required"),
-  phoneNumber: z.string().regex(/^(\+234|0)[7-9]\d{9}$/, "Please enter a valid Nigerian phone number"),
+  username: z.string().min(3, "Username must be at least 3 characters").max(20, "Username must be less than 20 characters"),
 });
 
 const otpFormSchema = z.object({
@@ -54,9 +53,8 @@ export default function GroupRegistration() {
   const registrationForm = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
     defaultValues: {
-      username: "",
       fullName: "",
-      phoneNumber: "",
+      username: "",
     },
   });
 
@@ -67,45 +65,18 @@ export default function GroupRegistration() {
     },
   });
 
-  const sendOtpMutation = useMutation({
-    mutationFn: async (phoneNumber: string) => {
-      const response = await apiRequest("POST", "/api/auth/send-otp", {
-        phoneNumber,
-      });
-      return response.json();
-    },
-    onSuccess: (data, phoneNumber) => {
-      setOtpData({ phoneNumber, expiresAt: data.expiresAt });
-      setStep("otp-verification");
-      toast({
-        title: "OTP Sent!",
-        description: `Verification code sent to ${phoneNumber}. Check your WhatsApp messages.`,
-      });
-      
-      // For development, show the OTP in console
-      if (data.developmentOtp) {
-        console.log("Development OTP:", data.developmentOtp);
-        toast({
-          title: "Development Mode",
-          description: `OTP: ${data.developmentOtp} (Check console for details)`,
-          variant: "default",
-        });
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Send OTP",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const registerMutation = useMutation({
-    mutationFn: async (data: RegistrationFormData & { otp: string }) => {
+    mutationFn: async (data: RegistrationFormData) => {
       if (!group) throw new Error("Group not found");
       
-      const response = await apiRequest("POST", `/api/groups/${group.id}/register-with-otp`, data);
+      // Use a default phone number since we're removing phone verification
+      const registrationData = {
+        ...data,
+        phoneNumber: "+234800000000", // Default since we're not collecting phone
+        password: Math.random().toString(36).slice(-8), // Generate random password
+      };
+      
+      const response = await apiRequest("POST", `/api/groups/${group.id}/register-simple`, registrationData);
       return response.json();
     },
     onSuccess: (data) => {
@@ -161,15 +132,7 @@ export default function GroupRegistration() {
   };
 
   const handleRegistrationSubmit = (data: RegistrationFormData) => {
-    sendOtpMutation.mutate(data.phoneNumber);
-  };
-
-  const handleOtpSubmit = (data: OtpFormData) => {
-    const registrationData = registrationForm.getValues();
-    registerMutation.mutate({
-      ...registrationData,
-      otp: data.otp,
-    });
+    registerMutation.mutate(data);
   };
 
   const handleLoginRedirect = () => {
