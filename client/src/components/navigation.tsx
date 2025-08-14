@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Users, Bell, Menu, X, MessageCircle } from "lucide-react";
+import { Users, Bell, Menu, X, MessageCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationBell } from "@/components/notification-bell";
@@ -22,7 +22,7 @@ export function Navigation() {
     <nav className="bg-white shadow-md sticky top-0 z-50 border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href={isAdmin() ? "/admin" : "/member"}>
+          <Link href="/dashboard">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-nigerian-green rounded-lg flex items-center justify-center">
                 <Users className="text-white h-6 w-6" />
@@ -37,40 +37,28 @@ export function Navigation() {
           <div className="flex items-center space-x-4">
             {/* Desktop Navigation */}
             <div className="hidden sm:flex items-center space-x-4">
-              {isAdmin() && (
-                <div className="bg-gray-100 p-1 rounded-lg">
-                  <Link href="/admin">
-                    <Button 
-                      variant={location === "/admin" ? "default" : "ghost"}
-                      size="sm"
-                      className={location === "/admin" ? "bg-nigerian-green text-white" : ""}
-                    >
-                      Admin
-                    </Button>
-                  </Link>
-                  <Link href="/member">
-                    <Button 
-                      variant={location === "/member" ? "default" : "ghost"}
-                      size="sm"
-                      className={location === "/member" ? "bg-nigerian-green text-white" : ""}
-                    >
-                      Member
-                    </Button>
-                  </Link>
-                </div>
-              )}
-              
-              <Link href="/whatsapp">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className={location === "/whatsapp" ? "bg-green-50 border-green-500 text-green-600" : ""}
-                  data-testid="whatsapp-nav"
-                >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  WhatsApp
-                </Button>
-              </Link>
+              <div className="bg-gray-100 p-1 rounded-lg">
+                <Link href="/dashboard">
+                  <Button 
+                    variant={location === "/dashboard" ? "default" : "ghost"}
+                    size="sm"
+                    className={location === "/dashboard" ? "bg-nigerian-green text-white" : ""}
+                  >
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Link href="/groups">
+                  <Button 
+                    variant={location === "/groups" ? "default" : "ghost"}
+                    size="sm"
+                    className={location === "/groups" ? "bg-nigerian-green text-white" : ""}
+                  >
+                    <Users className="h-4 w-4 mr-1" />
+                    Groups
+                  </Button>
+                </Link>
+              </div>
               
               {isAdmin() && (
                 <NotificationBell userId={user.id} />
@@ -98,27 +86,22 @@ export function Navigation() {
                     <p className="text-sm text-gray-600">{user.role}</p>
                   </div>
                   
-                  {isAdmin() && (
+                  {user && (
                     <>
-                      <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
-                          Admin Dashboard
+                          <TrendingUp className="h-4 w-4 mr-2" />
+                          Dashboard
                         </Button>
                       </Link>
-                      <Link href="/member" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/groups" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
-                          Member View
+                          <Users className="h-4 w-4 mr-2" />
+                          Groups
                         </Button>
                       </Link>
                     </>
                   )}
-                  
-                  <Link href="/whatsapp" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      WhatsApp Integration
-                    </Button>
-                  </Link>
                   
                   <Button variant="outline" onClick={handleLogout} className="w-full">
                     Logout
