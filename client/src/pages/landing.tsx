@@ -239,7 +239,7 @@ export default function Landing() {
           <div className="max-w-md mx-auto w-full">
             <Card>
               <CardHeader>
-                <CardTitle className="text-center">Get Started</CardTitle>
+                <CardTitle className="text-center">Access Your Account</CardTitle>
               </CardHeader>
               <CardContent>
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")}>
@@ -295,9 +295,6 @@ export default function Landing() {
                       <div className="space-y-4">
                         <div className="text-center mb-6">
                           <h3 className="text-lg font-semibold text-gray-900">Get Started</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            No password needed - secure OTP-based authentication only
-                          </p>
                         </div>
                         
                         <Form {...registerForm}>
