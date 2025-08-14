@@ -9,8 +9,13 @@ import type { User } from "@shared/schema";
 
 // Pages
 import Landing from "@/pages/landing";
+import Dashboard from "@/pages/dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import MemberDashboard from "@/pages/member-dashboard";
+import Groups from "@/pages/groups";
+import MakePayment from "@/pages/make-payment";
+import MyContributions from "@/pages/my-contributions";
+import Updates from "@/pages/updates";
 import GroupRegistration from "@/pages/group-registration";
 import NotFound from "@/pages/not-found";
 import WhatsAppIntegration from "@/pages/whatsapp-integration";
@@ -45,12 +50,22 @@ function Router() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/" component={user ? (isAdmin() ? AdminDashboard : MemberDashboard) : Landing} />
+      <Route path="/" component={user ? Dashboard : Landing} />
       <Route path="/register/:link" component={GroupRegistration} />
       
       {/* Protected routes */}
       {user && (
         <>
+          {/* Main dashboard - role-based content */}
+          <Route path="/dashboard" component={Dashboard} />
+          
+          {/* Member pages */}
+          <Route path="/make-payment" component={MakePayment} />
+          <Route path="/my-contributions" component={MyContributions} />
+          <Route path="/updates" component={Updates} />
+          <Route path="/groups" component={Groups} />
+          
+          {/* Legacy admin/member specific routes */}
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/member" component={MemberDashboard} />
           <Route path="/whatsapp" component={WhatsAppIntegration} />

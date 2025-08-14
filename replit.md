@@ -115,6 +115,32 @@ The application is designed to be easily deployable on platforms like Replit, Ve
 
 ## Recent Changes
 
+### Core Member Pages Implementation (August 14, 2025)
+- **Complete Page Set**: Created all core pages linked to member navigation menu items
+- **Unified Dashboard** (`/dashboard`): Role-based dashboard showing different content for Admin vs Member users
+  - Admin: Total collections, active members, pending approvals, success rate with group management
+  - Member: Personal contributions, active groups, pending payments with quick actions
+- **Make Payment** (`/make-payment`): Comprehensive payment submission system
+  - Group and purse selection with progress indicators
+  - File upload for payment proof with image validation
+  - Payment instructions and admin approval workflow
+  - Bank transfer reference support and notes functionality
+- **My Contributions** (`/my-contributions`): Complete payment history and tracking
+  - Status-based filtering (confirmed/pending/rejected) with visual indicators
+  - Search functionality across groups, purses, and references
+  - Summary statistics and contribution analytics
+  - One-click access to payment details and admin notes
+- **Updates** (`/updates`): Notifications and announcements center
+  - Recent notifications with type-based icons and colors
+  - Group announcements with priority levels
+  - Mock data implementation ready for real notification system
+  - Quick actions integration for immediate member responses
+- **Groups Overview** (`/groups`): Enhanced group management for both roles
+  - Admin: Create, manage, and share groups with bulk actions
+  - Member: View joined groups, make contributions, and invite others
+  - WhatsApp integration for easy group sharing
+  - Search and filter functionality with responsive design
+
 ### MVP-Friendly Navigation System (August 14, 2025)
 - **Role-Based Navigation Menus**: Different navigation items based on user role (Admin vs Member)
 - **Admin Navigation**: Dashboard (overview of all groups/stats) and Groups (manage contribution groups)
@@ -126,6 +152,7 @@ The application is designed to be easily deployable on platforms like Replit, Ve
   - Log Out: Exit the account securely
 - **Consistent Design**: Updated both desktop and mobile navigation with proper icons and Nigerian green theming
 - **User Experience**: Simplified navigation focused on core member actions and admin management tasks
+- **Complete Routing**: All navigation items properly routed in App.tsx with protected routes
 
 ### SMS-Based OTP Authentication System (August 14, 2025)
 - **Complete OTP-Only Authentication**: Rebuilt both registration ("Sign Up") and login workflows to use SMS OTP verification exclusively
