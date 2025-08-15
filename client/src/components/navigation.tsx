@@ -29,7 +29,7 @@ export function Navigation() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-nigerian-green">Kontrib</h1>
-                <p className="text-xs text-gray-600">Financial Management</p>
+                <p className="text-xs text-gray-600">Group Financial Management</p>
               </div>
             </div>
           </Link>
