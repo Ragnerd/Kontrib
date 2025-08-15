@@ -217,11 +217,36 @@ export class MemStorage implements IStorage {
     });
   }
 
-  async getUserGroups(userId: string): Promise<(GroupMember & { group: Group })[]> {
+  async getUserGroups(userId: string): Promise<(GroupMember & { group: GroupWithStats })[]> {
     const memberships = Array.from(this.groupMembers.values()).filter(member => member.userId === userId);
     return memberships.map(membership => {
       const group = this.groups.get(membership.groupId)!;
-      return { ...membership, group };
+      
+      // Calculate stats for the group
+      const members = Array.from(this.groupMembers.values()).filter(member => member.groupId === group.id);
+      const memberCount = members.length;
+      
+      const groupProjects = Array.from(this.projects.values()).filter(project => project.groupId === group.id);
+      const projectCount = groupProjects.length;
+      
+      const totalProjectTarget = groupProjects.reduce((sum, project) => sum + Number(project.targetAmount), 0);
+      const totalProjectCollected = groupProjects.reduce((sum, project) => sum + Number(project.collectedAmount), 0);
+      
+      const completionRate = totalProjectTarget > 0 ? 
+        Math.round((totalProjectCollected / totalProjectTarget) * 100) : 0;
+      
+      const pendingPayments = Array.from(this.contributions.values())
+        .filter(contrib => contrib.groupId === group.id && contrib.status === "pending").length;
+
+      const groupWithStats: GroupWithStats = {
+        ...group,
+        memberCount,
+        projectCount,
+        completionRate,
+        pendingPayments
+      };
+      
+      return { ...membership, group: groupWithStats };
     });
   }
 
