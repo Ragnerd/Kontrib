@@ -6,14 +6,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { insertProjectSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PAYMENT_TYPES, getDefaultPaymentTypes } from "@/lib/payment-types";
 import { z } from "zod";
 
 const createProjectFormSchema = insertProjectSchema.extend({
   targetAmount: z.string().min(1, "Target amount is required"),
+  selectedPaymentTypes: z.array(z.string()).min(1, "Please select at least one payment method"),
 });
 
 type CreateProjectFormData = z.infer<typeof createProjectFormSchema>;
@@ -37,6 +40,18 @@ export function CreateProjectModal({ open, onOpenChange, groupId, groupName }: C
       targetAmount: "",
       deadline: undefined,
       groupId,
+      accountName: "",
+      accountNumber: "",
+      bankName: "",
+      routingNumber: "",
+      swiftCode: "",
+      zelleEmail: "",
+      zellePhone: "",
+      cashappHandle: "",
+      venmoHandle: "",
+      paypalEmail: "",
+      paymentInstructions: "",
+      selectedPaymentTypes: getDefaultPaymentTypes(),
     },
   });
 
@@ -46,6 +61,8 @@ export function CreateProjectModal({ open, onOpenChange, groupId, groupName }: C
         ...data,
         // Ensure deadline is either a string or undefined, not an empty string
         deadline: data.deadline && typeof data.deadline === 'string' && data.deadline.trim() ? data.deadline : undefined,
+        // Convert selected payment types to JSON string
+        allowedPaymentTypes: JSON.stringify(data.selectedPaymentTypes || []),
       };
       const response = await apiRequest("POST", `/api/groups/${groupId}/projects`, payload);
       return response.json();

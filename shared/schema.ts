@@ -43,6 +43,21 @@ export const projects = pgTable("projects", {
   customSlug: text("custom_slug").unique(), // For kontrib.app/groupname/pursename URLs
   deadline: timestamp("deadline"),
   status: text("status").notNull().default("active"), // "active", "completed", "paused"
+  // Account details for contributions
+  accountName: text("account_name"),
+  accountNumber: text("account_number"),
+  bankName: text("bank_name"),
+  routingNumber: text("routing_number"), // For US banks
+  swiftCode: text("swift_code"), // For international transfers
+  // Alternative payment methods
+  zelleEmail: text("zelle_email"),
+  zellePhone: text("zelle_phone"),
+  cashappHandle: text("cashapp_handle"),
+  venmoHandle: text("venmo_handle"),
+  paypalEmail: text("paypal_email"),
+  // Payment instructions and preferred methods
+  paymentInstructions: text("payment_instructions"),
+  allowedPaymentTypes: text("allowed_payment_types"), // JSON array of allowed payment types
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -63,6 +78,8 @@ export const contributions = pgTable("contributions", {
   status: text("status").notNull().default("pending"), // "confirmed", "pending", "failed"
   transactionRef: text("transaction_ref"),
   proofOfPayment: text("proof_of_payment"), // Base64 encoded image or file path
+  paymentType: text("payment_type").notNull(), // "bank_transfer", "zelle", "cashapp", "venmo", "paypal", "wire_transfer"
+  paymentNotes: text("payment_notes"), // Additional notes about the payment method used
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -103,6 +120,7 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   createdAt: true,
 }).extend({
   deadline: z.string().optional().or(z.date().optional()),
+  allowedPaymentTypes: z.string().optional(), // JSON string of payment types
 });
 
 export const insertAccountabilityPartnerSchema = createInsertSchema(accountabilityPartners).omit({
@@ -125,7 +143,6 @@ export const notifications = pgTable("notifications", {
 
 export const insertContributionSchema = createInsertSchema(contributions).omit({
   id: true,
-  status: true,
   createdAt: true,
 });
 

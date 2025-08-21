@@ -25,12 +25,15 @@ import { getCurrentUser } from "@/lib/auth";
 import { formatNaira } from "@/lib/currency";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PAYMENT_TYPES, getPaymentTypeLabel } from "@/lib/payment-types";
+import { PaymentAccountDetails } from "@/components/payment-account-details";
 import { z } from "zod";
 
 const paymentSchema = z.object({
   groupId: z.string().min(1, "Please select a group"),
   purseId: z.string().optional(),
   amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Amount must be a positive number"),
+  paymentType: z.string().min(1, "Please select a payment method"),
   reference: z.string().optional(),
   notes: z.string().optional(),
   proofOfPayment: z.string().min(1, "Please upload proof of payment"),
@@ -51,6 +54,7 @@ export default function MakePayment() {
       groupId: "",
       purseId: "",
       amount: "",
+      paymentType: "",
       reference: "",
       notes: "",
       proofOfPayment: "",
@@ -71,6 +75,15 @@ export default function MakePayment() {
 
   // Find selected group details
   const selectedGroup = userGroups.find(group => group.id === selectedGroupId);
+  
+  // Find selected project details
+  const selectedPurseId = form.watch("purseId");
+  const selectedPurse = groupPurses.find(purse => purse.id === selectedPurseId);
+  
+  // Get allowed payment types for selected project
+  const allowedPaymentTypes = selectedPurse?.allowedPaymentTypes ? 
+    JSON.parse(selectedPurse.allowedPaymentTypes) : 
+    PAYMENT_TYPES.map(type => type.value);
 
   const paymentMutation = useMutation({
     mutationFn: async (data: PaymentFormData) => {
@@ -294,7 +307,7 @@ export default function MakePayment() {
                     {groupPurses.length > 0 && (
                       <FormField
                         control={form.control}
-                        name="projectId"
+                        name="purseId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Select Project (Optional)</FormLabel>
@@ -321,6 +334,49 @@ export default function MakePayment() {
                             <FormMessage />
                           </FormItem>
                         )}
+                      />
+                    )}
+
+                    {/* Payment Type Selection */}
+                    <FormField
+                      control={form.control}
+                      name="paymentType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Payment Method</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose your payment method" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {allowedPaymentTypes.map((paymentTypeValue) => {
+                                const paymentType = PAYMENT_TYPES.find(type => type.value === paymentTypeValue);
+                                return paymentType ? (
+                                  <SelectItem key={paymentType.value} value={paymentType.value}>
+                                    <div className="flex items-center">
+                                      <span className="mr-2">{paymentType.icon}</span>
+                                      <div>
+                                        <div className="font-medium">{paymentType.label}</div>
+                                        <div className="text-xs text-gray-500">{paymentType.description}</div>
+                                      </div>
+                                    </div>
+                                  </SelectItem>
+                                ) : null;
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Payment Account Details Display */}
+                    {selectedPurse && form.watch("paymentType") && (
+                      <PaymentAccountDetails 
+                        project={selectedPurse}
+                        selectedPaymentType={form.watch("paymentType")}
                       />
                     )}
 

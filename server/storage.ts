@@ -331,6 +331,19 @@ export class MemStorage implements IStorage {
         (typeof insertProject.deadline === 'string' ? new Date(insertProject.deadline) : insertProject.deadline) 
         : null,
       status: insertProject.status || "active",
+      // Ensure all account fields are null if not provided
+      accountName: insertProject.accountName || null,
+      accountNumber: insertProject.accountNumber || null,
+      bankName: insertProject.bankName || null,
+      routingNumber: insertProject.routingNumber || null,
+      swiftCode: insertProject.swiftCode || null,
+      zelleEmail: insertProject.zelleEmail || null,
+      zellePhone: insertProject.zellePhone || null,
+      cashappHandle: insertProject.cashappHandle || null,
+      venmoHandle: insertProject.venmoHandle || null,
+      paypalEmail: insertProject.paypalEmail || null,
+      paymentInstructions: insertProject.paymentInstructions || null,
+      allowedPaymentTypes: insertProject.allowedPaymentTypes || null,
     };
 
     this.projects.set(id, project);
@@ -483,6 +496,7 @@ export class MemStorage implements IStorage {
       transactionRef: insertContribution.transactionRef || null,
       proofOfPayment: insertContribution.proofOfPayment || null,
       projectId: insertContribution.projectId || null,
+      paymentNotes: insertContribution.paymentNotes || null,
     };
     this.contributions.set(id, contribution);
 
