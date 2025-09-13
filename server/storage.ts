@@ -762,9 +762,19 @@ export class MemStorage implements IStorage {
       expiresAt
     });
     
-    // In a real implementation, you would send the OTP via SMS here
-    // For development, we return the code
-    console.log(`OTP for ${phoneNumber}: ${code}`);
+    // Import WhatsApp service and send OTP
+    try {
+      const { whatsappService } = await import("./whatsapp-service");
+      const sent = await whatsappService.sendOTP(phoneNumber, code);
+      
+      if (!sent) {
+        console.error("Failed to send WhatsApp OTP, falling back to console log");
+        console.log(`OTP for ${phoneNumber}: ${code}`);
+      }
+    } catch (error) {
+      console.error("WhatsApp service error, falling back to console log:", error);
+      console.log(`OTP for ${phoneNumber}: ${code}`);
+    }
     
     return {
       code,
