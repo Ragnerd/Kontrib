@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Shield, MessageSquare, TrendingUp, CheckCircle } from "lucide-react";
+import { Users, Shield, MessageSquare, TrendingUp, CheckCircle, Phone } from "lucide-react";
 import { insertUserSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { setCurrentUser } from "@/lib/auth";
@@ -270,7 +270,7 @@ export default function Landing() {
 
               <div className="flex items-start space-x-3">
                 <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Smartphone className="h-5 w-5 text-yellow-600" />
+                  <Phone className="h-5 w-5 text-yellow-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">WhatsApp Integration</h3>
@@ -533,8 +533,8 @@ export default function Landing() {
                                 "Sending OTP..."
                               ) : (
                                 <>
-                                  <Smartphone className="h-4 w-4 mr-2" />
-                                  Send OTP via SMS
+                                  <Phone className="h-4 w-4 mr-2" />
+                                  Send OTP via WhatsApp
                                 </>
                               )}
                             </Button>
