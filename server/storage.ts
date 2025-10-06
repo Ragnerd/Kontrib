@@ -843,4 +843,517 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage implementation using Drizzle ORM
+import { db } from "./db";
+import { users as usersTable, groups as groupsTable, groupMembers as groupMembersTable, projects as projectsTable, accountabilityPartners as accountabilityPartnersTable, contributions as contributionsTable, notifications as notificationsTable, otpVerifications as otpVerificationsTable } from "@shared/schema";
+import { eq, and, gt, lt, sql as drizzleSql, desc } from "drizzle-orm";
+
+export class DbStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(usersTable).where(eq(usersTable.username, username)).limit(1);
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await db.insert(usersTable).values(insertUser).returning();
+    return result[0];
+  }
+
+  async getGroup(id: string): Promise<Group | undefined> {
+    const result = await db.select().from(groupsTable).where(eq(groupsTable.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getGroupByRegistrationLink(link: string): Promise<Group | undefined> {
+    const result = await db.select().from(groupsTable).where(eq(groupsTable.registrationLink, link)).limit(1);
+    return result[0];
+  }
+
+  async getGroupByCustomSlug(slug: string): Promise<Group | undefined> {
+    const result = await db.select().from(groupsTable).where(eq(groupsTable.customSlug, slug)).limit(1);
+    return result[0];
+  }
+
+  async getGroupsByAdmin(adminId: string): Promise<GroupWithStats[]> {
+    const adminGroups = await db.select().from(groupsTable).where(eq(groupsTable.adminId, adminId));
+    
+    const groupsWithStats = await Promise.all(adminGroups.map(async (group) => {
+      const memberCountResult = await db
+        .select({ count: drizzleSql<number>`count(*)::int` })
+        .from(groupMembersTable)
+        .where(eq(groupMembersTable.groupId, group.id));
+      const memberCount = memberCountResult[0]?.count || 0;
+
+      const groupProjects = await db.select().from(projectsTable).where(eq(projectsTable.groupId, group.id));
+      
+      const totalProjectTarget = groupProjects.reduce((sum, project) => sum + Number(project.targetAmount), 0);
+      const totalProjectCollected = groupProjects.reduce((sum, project) => sum + Number(project.collectedAmount), 0);
+      
+      const completionRate = totalProjectTarget > 0 ? Math.round((totalProjectCollected / totalProjectTarget) * 100) : 0;
+      const pendingPayments = 0;
+
+      return {
+        ...group,
+        memberCount,
+        projectCount: groupProjects.length,
+        completionRate,
+        pendingPayments
+      };
+    }));
+
+    return groupsWithStats;
+  }
+
+  async createGroup(insertGroup: InsertGroup, adminId: string): Promise<Group> {
+    const baseCode = insertGroup.name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '')
+      .substring(0, 15);
+    
+    const currentYear = new Date().getFullYear();
+    const registrationLink = `${baseCode}${currentYear}`;
+    const groupSlug = baseCode;
+
+    let whatsappLink = insertGroup.whatsappLink;
+    if (!whatsappLink) {
+      const customUrl = `kontrib.app/join/${registrationLink}`;
+      const message = `🎉 Join "${insertGroup.name}" on Kontrib!\n\nManage group contributions with transparency and ease.\n\n👉 Register here: ${customUrl}\n\n#Kontrib #GroupContributions`;
+      whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    }
+
+    const result = await db.insert(groupsTable).values({
+      ...insertGroup,
+      registrationLink,
+      customSlug: groupSlug,
+      adminId,
+      whatsappLink,
+    }).returning();
+    return result[0];
+  }
+
+  async updateGroup(id: string, updates: Partial<Group>): Promise<Group | undefined> {
+    const result = await db.update(groupsTable).set(updates).where(eq(groupsTable.id, id)).returning();
+    return result[0];
+  }
+
+  async getGroupMembers(groupId: string): Promise<(GroupMember & { user: User })[]> {
+    const result = await db
+      .select()
+      .from(groupMembersTable)
+      .leftJoin(usersTable, eq(groupMembersTable.userId, usersTable.id))
+      .where(eq(groupMembersTable.groupId, groupId));
+
+    return result.map(row => ({
+      ...row.group_members,
+      user: row.users!
+    }));
+  }
+
+  async getUserGroups(userId: string): Promise<(GroupMember & { group: Group })[]> {
+    const result = await db
+      .select()
+      .from(groupMembersTable)
+      .leftJoin(groupsTable, eq(groupMembersTable.groupId, groupsTable.id))
+      .where(eq(groupMembersTable.userId, userId));
+
+    return result.map(row => ({
+      ...row.group_members,
+      group: row.groups!
+    }));
+  }
+
+  async addGroupMember(member: InsertGroupMember): Promise<GroupMember> {
+    const result = await db.insert(groupMembersTable).values(member).returning();
+    return result[0];
+  }
+
+  async getGroupMember(groupId: string, userId: string): Promise<GroupMember | undefined> {
+    const result = await db
+      .select()
+      .from(groupMembersTable)
+      .where(and(eq(groupMembersTable.groupId, groupId), eq(groupMembersTable.userId, userId)))
+      .limit(1);
+    return result[0];
+  }
+
+  async getProjectsByGroup(groupId: string): Promise<ProjectWithStats[]> {
+    const groupProjects = await db.select().from(projectsTable).where(eq(projectsTable.groupId, groupId));
+    
+    const projectsWithStats = await Promise.all(groupProjects.map(async (project) => {
+      const contributionsResult = await db
+        .select({ count: drizzleSql<number>`count(*)::int` })
+        .from(contributionsTable)
+        .where(eq(contributionsTable.projectId, project.id));
+      const contributionCount = contributionsResult[0]?.count || 0;
+
+      const completionRate = Number(project.targetAmount) > 0
+        ? Math.round((Number(project.collectedAmount) / Number(project.targetAmount)) * 100)
+        : 0;
+
+      return {
+        ...project,
+        contributionCount,
+        completionRate
+      };
+    }));
+
+    return projectsWithStats;
+  }
+
+  async getProject(id: string): Promise<Project | undefined> {
+    const result = await db.select().from(projectsTable).where(eq(projectsTable.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getProjectByCustomSlug(customSlug: string): Promise<Project | undefined> {
+    const result = await db.select().from(projectsTable).where(eq(projectsTable.customSlug, customSlug)).limit(1);
+    return result[0];
+  }
+
+  async createProject(project: InsertProject): Promise<Project> {
+    const baseSlug = project.name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '')
+      .substring(0, 15);
+
+    const { deadline, ...restProject } = project;
+    const result = await db.insert(projectsTable).values({
+      ...restProject,
+      deadline: deadline ? (typeof deadline === 'string' ? new Date(deadline) : deadline) : null,
+      customSlug: baseSlug
+    }).returning();
+    return result[0];
+  }
+
+  async updateProject(id: string, updates: Partial<Project>): Promise<Project | undefined> {
+    const result = await db.update(projectsTable).set(updates).where(eq(projectsTable.id, id)).returning();
+    return result[0];
+  }
+
+  async getGroupAccountabilityPartners(groupId: string): Promise<AccountabilityPartnerWithDetails[]> {
+    const result = await db
+      .select()
+      .from(accountabilityPartnersTable)
+      .leftJoin(usersTable, eq(accountabilityPartnersTable.userId, usersTable.id))
+      .where(eq(accountabilityPartnersTable.groupId, groupId));
+
+    return result.map(row => ({
+      ...row.accountability_partners,
+      userName: row.users!.username,
+      userFullName: row.users!.fullName
+    }));
+  }
+
+  async addAccountabilityPartner(partner: InsertAccountabilityPartner): Promise<AccountabilityPartner> {
+    const result = await db.insert(accountabilityPartnersTable).values(partner).returning();
+    return result[0];
+  }
+
+  async removeAccountabilityPartner(groupId: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(accountabilityPartnersTable)
+      .where(and(eq(accountabilityPartnersTable.groupId, groupId), eq(accountabilityPartnersTable.userId, userId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getGroupContributions(groupId: string): Promise<ContributionWithDetails[]> {
+    const result = await db
+      .select()
+      .from(contributionsTable)
+      .leftJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
+      .leftJoin(projectsTable, eq(contributionsTable.projectId, projectsTable.id))
+      .leftJoin(groupsTable, eq(contributionsTable.groupId, groupsTable.id))
+      .where(eq(contributionsTable.groupId, groupId))
+      .orderBy(desc(contributionsTable.createdAt));
+
+    return result.map(row => ({
+      ...row.contributions,
+      userName: row.users!.username,
+      groupName: row.groups!.name,
+      projectName: row.projects?.name
+    }));
+  }
+
+  async getProjectContributions(projectId: string): Promise<ContributionWithDetails[]> {
+    const result = await db
+      .select()
+      .from(contributionsTable)
+      .leftJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
+      .leftJoin(projectsTable, eq(contributionsTable.projectId, projectsTable.id))
+      .leftJoin(groupsTable, eq(contributionsTable.groupId, groupsTable.id))
+      .where(eq(contributionsTable.projectId, projectId))
+      .orderBy(desc(contributionsTable.createdAt));
+
+    return result.map(row => ({
+      ...row.contributions,
+      userName: row.users!.username,
+      groupName: row.groups!.name,
+      projectName: row.projects?.name
+    }));
+  }
+
+  async createContribution(contribution: InsertContribution): Promise<Contribution> {
+    const result = await db.insert(contributionsTable).values(contribution).returning();
+    return result[0];
+  }
+
+  async confirmContribution(contributionId: string): Promise<Contribution | undefined> {
+    return await db.transaction(async (tx) => {
+      const contribution = await tx
+        .select()
+        .from(contributionsTable)
+        .where(eq(contributionsTable.id, contributionId))
+        .limit(1);
+
+      if (!contribution[0]) return undefined;
+
+      const updatedContribution = await tx
+        .update(contributionsTable)
+        .set({ status: 'confirmed' })
+        .where(eq(contributionsTable.id, contributionId))
+        .returning();
+
+      if (contribution[0].projectId) {
+        const project = await tx
+          .select()
+          .from(projectsTable)
+          .where(eq(projectsTable.id, contribution[0].projectId))
+          .limit(1);
+
+        if (project[0]) {
+          const newCollected = Number(project[0].collectedAmount) + Number(contribution[0].amount);
+          await tx
+            .update(projectsTable)
+            .set({ collectedAmount: newCollected.toString() })
+            .where(eq(projectsTable.id, contribution[0].projectId));
+        }
+      }
+
+      const member = await tx
+        .select()
+        .from(groupMembersTable)
+        .where(and(
+          eq(groupMembersTable.groupId, contribution[0].groupId),
+          eq(groupMembersTable.userId, contribution[0].userId)
+        ))
+        .limit(1);
+
+      if (member[0]) {
+        const newAmount = Number(member[0].contributedAmount) + Number(contribution[0].amount);
+        await tx
+          .update(groupMembersTable)
+          .set({ contributedAmount: newAmount.toString() })
+          .where(eq(groupMembersTable.id, member[0].id));
+      }
+
+      return updatedContribution[0];
+    });
+  }
+
+  async getUserContributions(userId: string): Promise<ContributionWithDetails[]> {
+    const result = await db
+      .select()
+      .from(contributionsTable)
+      .leftJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
+      .leftJoin(projectsTable, eq(contributionsTable.projectId, projectsTable.id))
+      .leftJoin(groupsTable, eq(contributionsTable.groupId, groupsTable.id))
+      .where(eq(contributionsTable.userId, userId))
+      .orderBy(desc(contributionsTable.createdAt));
+
+    return result.map(row => ({
+      ...row.contributions,
+      userName: row.users!.username,
+      groupName: row.groups!.name,
+      projectName: row.projects?.name
+    }));
+  }
+
+  async getAdminContributions(adminId: string): Promise<ContributionWithDetails[]> {
+    const adminGroups = await db.select().from(groupsTable).where(eq(groupsTable.adminId, adminId));
+    const groupIds = adminGroups.map(g => g.id);
+
+    if (groupIds.length === 0) return [];
+
+    const result = await db
+      .select()
+      .from(contributionsTable)
+      .leftJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
+      .leftJoin(projectsTable, eq(contributionsTable.projectId, projectsTable.id))
+      .leftJoin(groupsTable, eq(contributionsTable.groupId, groupsTable.id))
+      .where(drizzleSql`${contributionsTable.groupId} = ANY(${groupIds})`)
+      .orderBy(desc(contributionsTable.createdAt));
+
+    return result.map(row => ({
+      ...row.contributions,
+      userName: row.users!.username,
+      groupName: row.groups!.name,
+      projectName: row.projects?.name
+    }));
+  }
+
+  async updateContribution(id: string, updates: Partial<Contribution>): Promise<Contribution | undefined> {
+    const result = await db.update(contributionsTable).set(updates).where(eq(contributionsTable.id, id)).returning();
+    return result[0];
+  }
+
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    const result = await db
+      .select()
+      .from(notificationsTable)
+      .where(eq(notificationsTable.userId, userId))
+      .orderBy(desc(notificationsTable.createdAt));
+    return result;
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const result = await db.insert(notificationsTable).values(notification).returning();
+    return result[0];
+  }
+
+  async markNotificationRead(notificationId: string): Promise<void> {
+    await db.update(notificationsTable).set({ read: true }).where(eq(notificationsTable.id, notificationId));
+  }
+
+  async getUserStats(userId: string): Promise<MemberWithContributions> {
+    const contributions = await this.getUserContributions(userId);
+    const totalContributions = contributions
+      .filter(c => c.status === 'confirmed')
+      .reduce((sum, c) => sum + Number(c.amount), 0);
+
+    const userGroups = await this.getUserGroups(userId);
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    return {
+      ...user,
+      totalContributions: totalContributions.toString(),
+      groupCount: userGroups.length,
+      status: 'active'
+    };
+  }
+
+  async getAdminStats(adminId: string): Promise<{
+    totalCollections: string;
+    activeMembers: number;
+    pendingPayments: number;
+    completionRate: number;
+  }> {
+    const adminGroups = await db.select().from(groupsTable).where(eq(groupsTable.adminId, adminId));
+    const groupIds = adminGroups.map(g => g.id);
+
+    if (groupIds.length === 0) {
+      return { totalCollections: '0', activeMembers: 0, pendingPayments: 0, completionRate: 0 };
+    }
+
+    const membersResult = await db
+      .select({ count: drizzleSql<number>`count(DISTINCT ${groupMembersTable.userId})::int` })
+      .from(groupMembersTable)
+      .where(drizzleSql`${groupMembersTable.groupId} = ANY(${groupIds})`);
+
+    const contributionsResult = await db
+      .select()
+      .from(contributionsTable)
+      .where(drizzleSql`${contributionsTable.groupId} = ANY(${groupIds})`);
+
+    const totalCollections = contributionsResult
+      .filter(c => c.status === 'confirmed')
+      .reduce((sum, c) => sum + Number(c.amount), 0);
+
+    const pendingPayments = contributionsResult.filter(c => c.status === 'pending').length;
+    const activeMembers = membersResult[0]?.count || 0;
+
+    return {
+      totalCollections: totalCollections.toString(),
+      activeMembers,
+      pendingPayments,
+      completionRate: 0
+    };
+  }
+
+  async sendOtp(phoneNumber: string): Promise<{ code: string; expiresAt: string }> {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.createOtpVerification({
+      phoneNumber,
+      otp: code,
+      expiresAt
+    });
+
+    try {
+      const { whatsappService } = await import("./whatsapp-service");
+      const sent = await whatsappService.sendOTP(phoneNumber, code);
+
+      if (!sent) {
+        console.error("Failed to send WhatsApp OTP, falling back to console log");
+        console.log(`OTP for ${phoneNumber}: ${code}`);
+      }
+    } catch (error) {
+      console.error("WhatsApp service error, falling back to console log:", error);
+      console.log(`OTP for ${phoneNumber}: ${code}`);
+    }
+
+    return {
+      code,
+      expiresAt: expiresAt.toISOString()
+    };
+  }
+
+  async createOtpVerification(insertOtp: InsertOtpVerification): Promise<OtpVerification> {
+    await db.delete(otpVerificationsTable).where(eq(otpVerificationsTable.phoneNumber, insertOtp.phoneNumber));
+    const result = await db.insert(otpVerificationsTable).values(insertOtp).returning();
+    return result[0];
+  }
+
+  async getActiveOtpVerification(phoneNumber: string): Promise<OtpVerification | undefined> {
+    const now = new Date();
+    const result = await db
+      .select()
+      .from(otpVerificationsTable)
+      .where(
+        and(
+          eq(otpVerificationsTable.phoneNumber, phoneNumber),
+          eq(otpVerificationsTable.verified, false),
+          gt(otpVerificationsTable.expiresAt, now),
+          lt(otpVerificationsTable.attempts, 3)
+        )
+      )
+      .limit(1);
+    return result[0];
+  }
+
+  async verifyOtp(phoneNumber: string, otpCode: string): Promise<boolean> {
+    const verification = await this.getActiveOtpVerification(phoneNumber);
+    if (!verification) return false;
+
+    await db
+      .update(otpVerificationsTable)
+      .set({ attempts: verification.attempts + 1 })
+      .where(eq(otpVerificationsTable.id, verification.id));
+
+    if (verification.otp === otpCode) {
+      await db
+        .update(otpVerificationsTable)
+        .set({ verified: true })
+        .where(eq(otpVerificationsTable.id, verification.id));
+      return true;
+    }
+
+    return false;
+  }
+
+  async cleanupExpiredOtps(): Promise<void> {
+    const now = new Date();
+    await db.delete(otpVerificationsTable).where(lt(otpVerificationsTable.expiresAt, now));
+  }
+}
+
+export const storage = new DbStorage();
