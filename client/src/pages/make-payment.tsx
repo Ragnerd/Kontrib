@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,7 @@ export default function MakePayment() {
   const user = getCurrentUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [uploading, setUploading] = useState(false);
 
@@ -198,7 +200,11 @@ export default function MakePayment() {
               <p className="text-gray-600 mb-6">
                 You need to join a contribution group before you can make payments.
               </p>
-              <Button className="bg-nigerian-green hover:bg-forest-green">
+              <Button 
+                className="bg-nigerian-green hover:bg-forest-green"
+                onClick={() => navigate("/join-group")}
+                data-testid="button-find-groups"
+              >
                 Find Groups to Join
               </Button>
             </CardContent>
