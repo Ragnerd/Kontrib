@@ -1108,56 +1108,54 @@ export class DbStorage implements IStorage {
   }
 
   async confirmContribution(contributionId: string): Promise<Contribution | undefined> {
-    return await db.transaction(async (tx) => {
-      const contribution = await tx
+    const contribution = await db
+      .select()
+      .from(contributionsTable)
+      .where(eq(contributionsTable.id, contributionId))
+      .limit(1);
+
+    if (!contribution[0]) return undefined;
+
+    const updatedContribution = await db
+      .update(contributionsTable)
+      .set({ status: 'confirmed' })
+      .where(eq(contributionsTable.id, contributionId))
+      .returning();
+
+    if (contribution[0].projectId) {
+      const project = await db
         .select()
-        .from(contributionsTable)
-        .where(eq(contributionsTable.id, contributionId))
+        .from(projectsTable)
+        .where(eq(projectsTable.id, contribution[0].projectId))
         .limit(1);
 
-      if (!contribution[0]) return undefined;
-
-      const updatedContribution = await tx
-        .update(contributionsTable)
-        .set({ status: 'confirmed' })
-        .where(eq(contributionsTable.id, contributionId))
-        .returning();
-
-      if (contribution[0].projectId) {
-        const project = await tx
-          .select()
-          .from(projectsTable)
-          .where(eq(projectsTable.id, contribution[0].projectId))
-          .limit(1);
-
-        if (project[0]) {
-          const newCollected = Number(project[0].collectedAmount) + Number(contribution[0].amount);
-          await tx
-            .update(projectsTable)
-            .set({ collectedAmount: newCollected.toString() })
-            .where(eq(projectsTable.id, contribution[0].projectId));
-        }
+      if (project[0]) {
+        const newCollected = Number(project[0].collectedAmount) + Number(contribution[0].amount);
+        await db
+          .update(projectsTable)
+          .set({ collectedAmount: newCollected.toString() })
+          .where(eq(projectsTable.id, contribution[0].projectId));
       }
+    }
 
-      const member = await tx
-        .select()
-        .from(groupMembersTable)
-        .where(and(
-          eq(groupMembersTable.groupId, contribution[0].groupId),
-          eq(groupMembersTable.userId, contribution[0].userId)
-        ))
-        .limit(1);
+    const member = await db
+      .select()
+      .from(groupMembersTable)
+      .where(and(
+        eq(groupMembersTable.groupId, contribution[0].groupId),
+        eq(groupMembersTable.userId, contribution[0].userId)
+      ))
+      .limit(1);
 
-      if (member[0]) {
-        const newAmount = Number(member[0].contributedAmount) + Number(contribution[0].amount);
-        await tx
-          .update(groupMembersTable)
-          .set({ contributedAmount: newAmount.toString() })
-          .where(eq(groupMembersTable.id, member[0].id));
-      }
+    if (member[0]) {
+      const newAmount = Number(member[0].contributedAmount) + Number(contribution[0].amount);
+      await db
+        .update(groupMembersTable)
+        .set({ contributedAmount: newAmount.toString() })
+        .where(eq(groupMembersTable.id, member[0].id));
+    }
 
-      return updatedContribution[0];
-    });
+    return updatedContribution[0];
   }
 
   async getUserContributions(userId: string): Promise<ContributionWithDetails[]> {
