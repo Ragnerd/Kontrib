@@ -1,0 +1,50 @@
+Hello Replit Team, 👋
+
+I’m requesting your help to implement Open Graph meta tags in my Kontrib app (client/index.html) to fix the WhatsApp link preview issue.
+
+Currently, when I share my deployed link —
+👉 https://kontrib.replit.app
+WhatsApp does not display any link preview card (title, description, or image).
+
+After checking your earlier analysis, the root cause is confirmed:
+The <head> section in client/index.html doesn’t include any Open Graph meta tags (og:title, og:description, og:image, og:url, etc.).
+
+
+---
+
+⚙ Requested Implementation
+
+Please add the following meta tags in the <head> section of client/index.html:
+
+<!-- Open Graph Meta Tags for WhatsApp/Facebook -->
+<meta property="og:title" content="Kontrib - Group Financial Contributions" />
+<meta property="og:description" content="Manage group financial contributions in Nigeria. Join groups, make payments, and track contributions with WhatsApp OTP verification." />
+<meta property="og:image" content="https://kontrib.replit.app/og-image.png" />
+<meta property="og:url" content="https://kontrib.replit.app" />
+<meta property="og:type" content="website" />
+
+<!-- Twitter Card Meta Tags (optional but recommended) -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Kontrib - Group Financial Contributions" />
+<meta name="twitter:description" content="Manage group financial contributions in Nigeria. Join groups, make payments, and track contributions with WhatsApp OTP verification." />
+<meta name="twitter:image" content="https://kontrib.replit.app/og-image.png" />
+
+Additionally, please ensure that the og:image file (og-image.png) is placed under client/public/
+and that it can be accessed via the URL:
+https://kontrib.replit.app/og-image.png
+
+
+---
+
+⚠ Important
+
+Please only implement this meta tag section —
+do not modify or touch any other parts of the project or codebase.
+Everything else in the app (WhatsApp OTP, payments, admin panel, etc.) is already working perfectly.
+
+
+---
+
+Once implemented, I’ll redeploy and verify that the WhatsApp link preview (link card) is generated correctly.
+
+Thank you very much for your assistance! 🙏
