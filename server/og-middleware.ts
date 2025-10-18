@@ -110,7 +110,9 @@ export async function handleDynamicOGTags(
       return false;
     }
 
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const host = req.get('host');
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
     const pageUrl = `${baseUrl}${urlPath}`;
     const imageUrl = `${baseUrl}/og-image.jpg`;
     
