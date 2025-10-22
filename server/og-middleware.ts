@@ -96,6 +96,11 @@ export async function handleDynamicOGTags(
 
   const urlPath = req.path || req.originalUrl;
   
+  // Skip API routes
+  if (urlPath.startsWith('/api/')) {
+    return false;
+  }
+  
   // Match multiple route patterns:
   // 1. /register/:groupLink
   // 2. /join/:groupLink

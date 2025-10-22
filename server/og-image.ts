@@ -32,7 +32,7 @@ export async function generateOGImage(groupIdentifier: string): Promise<Buffer |
       totalCollected += parseFloat(project.collectedAmount);
     }
 
-    const progressPercentage = totalTarget > 0 ? Math.round((totalCollected / totalTarget) * 100) : 0;
+    const progressPercentage = totalTarget > 0 ? Math.min(100, Math.round((totalCollected / totalTarget) * 100)) : 0;
 
     // Format amounts
     const formatAmount = (amount: number) => {
@@ -130,18 +130,20 @@ export async function generateOGImage(groupIdentifier: string): Promise<Buffer |
     ctx.ellipse(contentX + iconSize/2, contentY + 65, 24, 18, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Group name
+    // Group name (truncate if too long)
     ctx.fillStyle = '#000000';
     ctx.font = 'bold 42px sans-serif';
-    ctx.fillText(group.name, contentX + iconSize + 20, contentY + 35);
+    const groupNameText = group.name.length > 25 ? group.name.substring(0, 25) + '...' : group.name;
+    ctx.fillText(groupNameText, contentX + iconSize + 20, contentY + 35);
 
-    // Project name/description
+    // Project name/description (truncate if too long)
     if (firstProject) {
       const projectText = firstProject.name || firstProject.description || '';
       if (projectText) {
         ctx.fillStyle = '#6b7280';
         ctx.font = '28px sans-serif';
-        ctx.fillText(projectText.substring(0, 50), contentX + iconSize + 20, contentY + 70);
+        const truncatedText = projectText.length > 50 ? projectText.substring(0, 50) + '...' : projectText;
+        ctx.fillText(truncatedText, contentX + iconSize + 20, contentY + 70);
       }
     }
 
