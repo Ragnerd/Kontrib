@@ -832,6 +832,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OG Image Generation
+  const { generateOGImage } = await import('./og-image');
+  
+  app.get("/api/og-image/:identifier", async (req, res) => {
+    try {
+      const { identifier } = req.params;
+      const imageBuffer = await generateOGImage(identifier);
+      
+      if (!imageBuffer) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error("OG image generation error:", error);
+      res.status(500).json({ message: "Failed to generate OG image" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

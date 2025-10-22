@@ -140,7 +140,7 @@ export async function handleDynamicOGTags(
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
     const pageUrl = `${baseUrl}${urlPath}`;
-    const imageUrl = `${baseUrl}/og-image.jpg`;
+    const imageUrl = `${baseUrl}/api/og-image/${groupLink}`;
     
     const title = `Join ${group.name} on Kontrib`;
     const description = group.description || 
