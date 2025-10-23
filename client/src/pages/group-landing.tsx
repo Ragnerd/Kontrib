@@ -108,10 +108,14 @@ export default function GroupLanding() {
           <div className="flex items-center justify-center">
             {/* Official Kontrib Logo */}
             <img 
-              src="/kontrib-logo.jpg" 
+              src="/kontrib-logo.jpg?v=2" 
               alt="Kontrib" 
-              className="h-16 w-auto"
+              className="h-16 w-auto object-contain"
               data-testid="img-kontrib-logo"
+              onError={(e) => {
+                console.error('Logo failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </div>
         </div>
