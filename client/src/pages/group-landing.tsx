@@ -191,11 +191,21 @@ export default function GroupLanding() {
         {/* Join Button */}
         <Button 
           onClick={handleJoinGroup}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg mb-6 flex items-center justify-center gap-2"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg mb-3 flex items-center justify-center gap-2"
           data-testid="button-join-group"
         >
           <Users className="w-5 h-5" />
           Join Group
+        </Button>
+
+        {/* Cancel/Exit Button */}
+        <Button 
+          onClick={() => navigate("/")}
+          variant="outline"
+          className="w-full py-6 text-lg font-semibold rounded-xl mb-6"
+          data-testid="button-cancel"
+        >
+          Cancel
         </Button>
 
         {/* Info Box */}

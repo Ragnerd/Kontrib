@@ -64,3 +64,20 @@ Implemented visual WhatsApp link previews that display the Join Card design inst
 - Text truncation and progress bar clamping for edge cases
 - System dependencies: libuuid, cairo, pango, libpng, libjpeg
 - Fallback hexagon logo if official logo fails to load
+
+### Membership Detection Fix & Cancel Button (November 1, 2025)
+Fixed critical membership detection bug and added UX improvement to group landing pages:
+
+**Bug Fix - Membership Detection:**
+- **Root Cause**: Backend was reading non-existent `req.session.userId` while app uses client-side localStorage authentication
+- **Solution**: Updated membership check endpoints to accept `userId` as query parameter (`?userId=xxx`)
+- **Affected Endpoints**: `/api/groups/slug/:slug` and `/api/groups/registration/:link`
+- **Frontend Update**: Modified queries to pass `userId` from localStorage to backend for accurate membership status
+- **Result**: "Already Joined" indicator now displays correctly for logged-in members
+
+**UX Improvement - Cancel Button:**
+- Added "Cancel" button below "Join Group" button on group landing pages (`/fariddevelopers`, `/join/:link`, etc.)
+- **Styling**: Outline variant (secondary style), full-width, matching Join button size
+- **Functionality**: Redirects users to root page (`/`) for login/registration
+- **Purpose**: Provides clear exit path for visitors who land on group pages while not authenticated
+- **Location**: `client/src/pages/group-landing.tsx`
