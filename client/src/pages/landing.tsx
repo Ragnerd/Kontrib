@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { setCurrentUser } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import kontribLogo from "@assets/WhatsApp Image 2025-10-19 at 01.29.52_ced7d354_1762106313529.jpg";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -225,14 +226,14 @@ export default function Landing() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center space-x-3 mb-8">
-          <div className="w-12 h-12 bg-nigerian-green rounded-lg flex items-center justify-center">
-            <Users className="text-white h-7 w-7" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-nigerian-green">Kontrib</h1>
-            <p className="text-gray-600">WhatsApp Group Financial Management</p>
-          </div>
+        <div className="flex flex-col items-start mb-8">
+          <img 
+            src={kontribLogo} 
+            alt="Kontrib" 
+            className="h-10 w-auto object-contain mb-1"
+            data-testid="img-landing-logo"
+          />
+          <p className="text-[13px] text-gray-500">Group Financial Management</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
