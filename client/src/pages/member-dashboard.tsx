@@ -115,8 +115,12 @@ export default function MemberDashboard() {
                   </p>
                   <p className="text-xs text-green-600">All groups combined</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
-                  <DollarSign className="text-blue-500 h-6 w-6" />
+                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="/kontrib-logo.jpg?v=3" 
+                    alt="Kontrib Logo" 
+                    className="w-8 h-8 object-contain"
+                  />
                 </div>
               </div>
             </CardContent>
