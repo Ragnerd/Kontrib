@@ -24,16 +24,16 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-2 py-2">
               <img 
                 src={kontribLogo} 
                 alt="Kontrib Logo" 
-                className="h-10 w-auto object-contain"
+                className="h-9 w-auto object-contain sm:h-10"
                 data-testid="img-kontrib-logo"
               />
-              <div>
-                <h1 className="text-xl font-bold text-nigerian-green">Kontrib</h1>
-                <p className="text-xs text-gray-600">Group Financial Management</p>
+              <div className="flex flex-col justify-center leading-tight">
+                <h1 className="text-lg sm:text-xl font-bold text-nigerian-green leading-tight">Kontrib</h1>
+                <p className="text-[10px] sm:text-xs text-gray-600 leading-tight">Group Financial Management</p>
               </div>
             </div>
           </Link>
