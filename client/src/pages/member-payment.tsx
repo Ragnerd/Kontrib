@@ -185,7 +185,7 @@ export default function MemberPayment() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 pb-24 md:pb-4 overflow-y-auto">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
@@ -387,7 +387,7 @@ export default function MemberPayment() {
                 Upload Payment Proof
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pb-6">
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-amber-800 text-sm">
                   Upload a screenshot or photo of your transfer receipt for verification.
@@ -418,7 +418,7 @@ export default function MemberPayment() {
                         <img 
                           src={proofPreview} 
                           alt="Payment proof" 
-                          className="w-full h-48 object-cover"
+                          className="w-full h-48 object-contain bg-gray-50"
                         />
                       </div>
                       <Button
@@ -428,6 +428,7 @@ export default function MemberPayment() {
                           setProofFile(null);
                           setProofPreview("");
                         }}
+                        data-testid="change-image-button"
                       >
                         Change Image
                       </Button>
@@ -458,11 +459,13 @@ export default function MemberPayment() {
                 />
               </div>
 
-              <div className="flex gap-2">
+              {/* Mobile Sticky Button Area */}
+              <div className="flex gap-2 md:relative fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-800 border-t md:border-t-0 z-10 md:p-0">
                 <Button 
                   variant="outline" 
                   onClick={() => setStep("instructions")}
                   className="flex-1"
+                  data-testid="back-button"
                 >
                   Back
                 </Button>
