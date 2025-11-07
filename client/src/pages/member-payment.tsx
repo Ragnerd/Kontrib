@@ -69,7 +69,7 @@ export default function MemberPayment() {
   // Submit contribution mutation
   const submitContributionMutation = useMutation({
     mutationFn: async (contributionData: FormData) => {
-      return apiRequest("/api/contributions", "POST", contributionData);
+      return apiRequest("POST", "/api/contributions", contributionData);
     },
     onSuccess: () => {
       setStep("success");
