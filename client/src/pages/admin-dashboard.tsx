@@ -122,21 +122,30 @@ export default function AdminDashboard() {
         />
         
         {/* Quick Actions for Group */}
-        <div className="flex space-x-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button
             onClick={() => handleCreateProject(group)}
             variant="outline"
             size="sm"
-            className="flex-1"
           >
             <FolderPlus className="h-4 w-4 mr-1" />
             Add Project
           </Button>
           <Button
+            onClick={() => toast({
+              title: "View Members",
+              description: "Member management feature coming soon",
+            })}
+            variant="outline"
+            size="sm"
+          >
+            <Users className="h-4 w-4 mr-1" />
+            View Members
+          </Button>
+          <Button
             onClick={() => toggleGroupExpansion(group.id)}
             variant="outline"
             size="sm"
-            className="flex-1"
           >
             <Settings className="h-4 w-4 mr-1" />
             {isExpanded ? 'Hide' : 'View'} Projects ({projects.length})
@@ -145,7 +154,6 @@ export default function AdminDashboard() {
             onClick={() => handleManagePartners(group)}
             variant="outline"
             size="sm"
-            className="flex-1"
           >
             <UserCheck className="h-4 w-4 mr-1" />
             Partners
@@ -227,7 +235,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardContent className="p-6 pt-[10px] pb-[10px]">
               <div className="flex items-center justify-between">
@@ -279,22 +287,6 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6 pt-[10px] pb-[10px]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Completion Rate</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {adminStats?.completionRate || 0}%
-                  </p>
-                  <p className="text-xs text-green-600">Above average</p>
-                </div>
-                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
-                  <TrendingUp className="text-green-500 h-6 w-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Main Content Grid */}
@@ -431,23 +423,6 @@ export default function AdminDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* WhatsApp Integration */}
-            <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <MessageCircle className="h-6 w-6" />
-                  <h3 className="font-semibold">WhatsApp Integration</h3>
-                </div>
-                <p className="text-green-100 text-sm mb-4">
-                  Share group links and send automated reminders directly to WhatsApp groups.
-                </p>
-                <Button variant="secondary" size="sm" className="w-full">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configure WhatsApp
-                </Button>
-              </CardContent>
-            </Card>
-
             {/* Notifications Panel */}
             <NotificationsPanel currentUser={user} />
 

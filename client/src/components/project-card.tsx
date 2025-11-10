@@ -111,10 +111,10 @@ export function ProjectCard({
                 size="sm"
                 onClick={() => onManage?.(project)}
                 className="flex-1"
-                data-testid="button-manage"
+                data-testid="button-share"
               >
                 <Settings className="h-4 w-4 mr-2" />
-                Manage
+                Share
               </Button>
             )}
           </div>

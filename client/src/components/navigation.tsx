@@ -52,6 +52,16 @@ export function Navigation() {
                         Groups
                       </Button>
                     </Link>
+                    <Link href="/admin">
+                      <Button 
+                        variant={location === "/admin" ? "default" : "ghost"}
+                        size="sm"
+                        className={location === "/admin" ? "bg-nigerian-green text-white" : ""}
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Projects
+                      </Button>
+                    </Link>
                     <Button 
                       variant="ghost"
                       size="sm"
@@ -149,6 +159,12 @@ export function Navigation() {
                             <Button variant="ghost" className="w-full justify-start">
                               <Users className="h-4 w-4 mr-2" />
                               Groups
+                            </Button>
+                          </Link>
+                          <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                            <Button variant="ghost" className="w-full justify-start">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Projects
                             </Button>
                           </Link>
                           <Button 

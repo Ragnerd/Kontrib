@@ -71,7 +71,7 @@ export function CreateProjectModal({ open, onOpenChange, groupId, groupName }: C
       queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "projects"] });
       toast({
         title: "Project Created!",
-        description: `Project "${data.name}" has been created with custom URL: kontrib.app/${data.customSlug}`,
+        description: `Project "${data.name}" has been created successfully!`,
       });
       form.reset();
       onOpenChange(false);
@@ -167,12 +167,6 @@ export function CreateProjectModal({ open, onOpenChange, groupId, groupName }: C
                 </FormItem>
               )}
             />
-
-            <div className="bg-green-50 p-3 rounded-lg">
-              <p className="text-sm text-green-700">
-                🔗 <strong>Custom URL:</strong> This project will get its own shareable link in format: kontrib.app/groupname/projectname
-              </p>
-            </div>
 
             <div className="flex space-x-3 pt-4">
               <Button 

@@ -184,21 +184,16 @@ export default function ProjectDetails() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            {/* Total Contributions Box */}
-            <div className="mb-6 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg p-6 text-white">
-              <div className="text-sm font-medium mb-2">Total</div>
-              <div className="text-4xl font-bold" data-testid="total-contributions">
-                {formatNaira(totalContributed)}
-              </div>
-            </div>
-
-            {/* Contributors Table */}
+            {/* Invite Contributors */}
             {sortedContributions.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                 <h3 className="font-medium text-gray-900 mb-2">No Contributors Yet</h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-sm mb-4">
                   Be the first to contribute to this project!
+                </p>
+                <p className="text-sm text-gray-700 font-medium">
+                  Invite contributors with special sharing link
                 </p>
               </div>
             ) : (

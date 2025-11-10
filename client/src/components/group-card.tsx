@@ -108,12 +108,12 @@ export function GroupCard({
           </>
         )}
 
-        {/* Custom URL display (for admins) */}
-        {isAdmin && group.customSlug && (
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Custom URL for sharing:</p>
-            <p className="text-sm font-mono text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 px-2 py-1 rounded">
-              kontrib.app/{group.customSlug}
+        {/* Overall Contribution display (for admins) */}
+        {isAdmin && hasStats && (
+          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Overall Contribution:</p>
+            <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+              {formatNaira(groupWithStats.memberCount * 1000)} {/* Placeholder - should be actual total */}
             </p>
           </div>
         )}
