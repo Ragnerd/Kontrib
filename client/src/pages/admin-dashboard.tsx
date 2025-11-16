@@ -137,7 +137,7 @@ export default function AdminDashboard() {
             Add Project
           </Button>
           <Button
-            onClick={() => setLocation(`/groups/${group.id}`)}
+            onClick={() => setLocation(`/group/${group.id}`)}
             variant="outline"
             size="sm"
             data-testid={`view-members-${group.id}`}
