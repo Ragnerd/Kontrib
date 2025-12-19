@@ -160,7 +160,7 @@ This project is currently not licensed. Add a license if you plan to make it ope
 
 ## 👤 Author
 
-**Faisal (FaisalEngish)**
+**Faisal (Moinul Faisal)**
 Frontend Developer | React & Next.js
 
 ---
